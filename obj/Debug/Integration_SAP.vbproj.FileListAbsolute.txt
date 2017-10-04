@@ -1,0 +1,11 @@
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\bin\Debug\Integration_SAP.exe.config
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\bin\Debug\Integration_SAP.exe
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\bin\Debug\Integration_SAP.pdb
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\bin\Debug\Integration_SAP.xml
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.vbprojResolveAssemblyReference.cache
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.Form1.resources
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.Resources.resources
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.vbproj.GenerateResource.Cache
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.exe
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.xml
+c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.pdb
