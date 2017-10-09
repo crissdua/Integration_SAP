@@ -3,6 +3,49 @@ Imports System.IO
 Imports System.Xml
 Imports System.Threading
 Public Class Form1
+    Private Property _oCompany As SAPbobsCOM.Company
+
+    Public Property oCompany() As SAPbobsCOM.Company
+        Get
+            Return _oCompany
+        End Get
+        Set(ByVal value As SAPbobsCOM.Company)
+            _oCompany = value
+        End Set
+    End Property
+
+    Public Function MakeConnectionSAP() As Boolean
+        Dim Connected As Boolean = False
+        '' Dim cnnParam As New Settings
+        Try
+            Connected = -1
+
+            oCompany = New SAPbobsCOM.Company
+            oCompany.DbServerType = SAPbobsCOM.BoDataServerTypes.dst_MSSQL2014
+            oCompany.DbUserName = "sa"
+            oCompany.DbPassword = "12345"
+            oCompany.Server = "DESKTOP-13FMJTF"
+            oCompany.CompanyDB = "FYA"
+            oCompany.UserName = "manager"
+            oCompany.Password = "alegria"
+            oCompany.LicenseServer = "DESKTOP-13FMJTF:30000"
+            oCompany.UseTrusted = False
+            Connected = oCompany.Connect()
+
+            If Connected <> 0 Then
+                Connected = False
+                MsgBox(oCompany.GetLastErrorDescription)
+            Else
+                'MsgBox("Conexión con SAP exitosa")
+                Connected = True
+            End If
+            Return Connected
+        Catch ex As Exception
+            Throw New Exception(ex.Message)
+        End Try
+
+    End Function
+
     Dim MyThread As Thread
     Dim myStream As Stream
     'items
@@ -38,6 +81,12 @@ Public Class Form1
     'Pagos_Transfer
     Dim PTransferStart As New ThreadStart(AddressOf BackgroundPTransfer)
     Dim CallPTransfer As New MethodInvoker(AddressOf Me.PTransferToma)
+    'cfacturas
+    Dim cFacturasStart As New ThreadStart(AddressOf BackgroundcFacturas)
+    Dim CallcFacturas As New MethodInvoker(AddressOf Me.cFacturasToma)
+    'Pagos
+    Dim PagosStart As New ThreadStart(AddressOf BackgroundPagos)
+    Dim CallPagos As New MethodInvoker(AddressOf Me.PagosToma)
 
     Public Sub BackgroundItems()
         While True
@@ -54,6 +103,12 @@ Public Class Form1
     Public Sub BackgroundFacturas()
         While True
             Me.BeginInvoke(CallFacturas)
+            Thread.Sleep(1500)
+        End While
+    End Sub
+    Public Sub BackgroundcFacturas()
+        While True
+            Me.BeginInvoke(CallcFacturas)
             Thread.Sleep(1500)
         End While
     End Sub
@@ -105,6 +160,14 @@ Public Class Form1
             Thread.Sleep(1500)
         End While
     End Sub
+    Public Sub BackgroundPagos()
+        While True
+            Me.BeginInvoke(CallPagos)
+            Thread.Sleep(1500)
+        End While
+    End Sub
+
+
 
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -166,6 +229,16 @@ Public Class Form1
         MyThread.IsBackground = True
         MyThread.Name = "MyThreadPTransfer"
         MyThread.Start()
+        'Thread cFACTURAS
+        MyThread = New Thread(cFacturasStart)
+        MyThread.IsBackground = True
+        MyThread.Name = "MyThreadcFacturas"
+        MyThread.Start()
+        'Thread Pagos
+        MyThread = New Thread(PagosStart)
+        MyThread.IsBackground = True
+        MyThread.Name = "MyThreadcPagos"
+        MyThread.Start()
     End Sub
 
     Public Sub ItemToma()
@@ -225,6 +298,36 @@ Public Class Form1
             End If
         Next
     End Sub
+    Public Sub cFacturasToma()
+        Try
+
+
+            Dim objFSO As Object = CreateObject("Scripting.FileSystemObject")
+            Dim objSubFolder As Object = "C:\TS\FacturaUpdate\"
+            Dim objFolder As Object = objFSO.GetFolder(objSubFolder)
+            Dim colFiles As Object = objFolder.Files
+            For Each objFile In colFiles
+
+                If existecFactura() = 0 Then
+                    Dim entra As String = "C:\TS\FacturaUpdate\" + objFile.Name.ToString
+                    Dim integ As String = "C:\TS\FacturaUpdate\Integration\Invoice.xml"
+                    File.Move(entra, integ)
+                    CancelaFactura()
+                    'File.Delete("C:\TS\FacturaUpdate\Integration\Invoice.xml")
+                    'File.Move(integ, temp)
+                ElseIf existecFactura() = 1 Then
+                    Dim entra As String = "C:\TS\FacturaUpdate\" + objFile.Name.ToString
+                    Dim integ As String = "C:\TS\FacturaUpdate\Integration\Invoice.xml"
+                    CancelaFactura()
+                    'File.Delete("C:\TS\FacturaUpdate\Integration\Invoice.xml")
+                    'File.Move(integ, temp)
+                End If
+
+            Next
+        Catch ex As Exception
+
+        End Try
+    End Sub
     Public Sub OrdenesToma()
         Dim objFSO As Object = CreateObject("Scripting.FileSystemObject")
         Dim objSubFolder As Object = "C:\TS\Orden\"
@@ -271,7 +374,7 @@ Public Class Form1
 
         For Each objFile In colFiles
 
-            If existeTraslado() = 0 Then
+            If existeNcredito() = 0 Then
                 Dim entra As String = "C:\TS\NotaCredito\" + objFile.Name.ToString
                 Dim integ As String = "C:\TS\NotaCredito\Integration\NCredito.xml"
                 Dim temp As String = "C:\TS\NotaCredito\temp\NCredito" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
@@ -290,7 +393,7 @@ Public Class Form1
 
         For Each objFile In colFiles
 
-            If existeTraslado() = 0 Then
+            If existePaciente() = 0 Then
                 Dim entra As String = "C:\TS\Paciente\" + objFile.Name.ToString
                 Dim integ As String = "C:\TS\Paciente\Integration\Paciente.xml"
                 Dim temp As String = "C:\TS\Paciente\temp\Paciente" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
@@ -309,7 +412,7 @@ Public Class Form1
 
         For Each objFile In colFiles
 
-            If existeTraslado() = 0 Then
+            If existePCheque() = 0 Then
                 Dim entra As String = "C:\TS\Pagos_Cheque\" + objFile.Name.ToString
                 Dim integ As String = "C:\TS\Pagos_Cheque\Integration\PaymentCHQ.xml"
                 Dim temp As String = "C:\TS\Pagos_Cheque\temp\PaymentCHQ" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
@@ -328,7 +431,7 @@ Public Class Form1
 
         For Each objFile In colFiles
 
-            If existeTraslado() = 0 Then
+            If existePCredito() = 0 Then
                 Dim entra As String = "C:\TS\Pagos_Credito\" + objFile.Name.ToString
                 Dim integ As String = "C:\TS\Pagos_Credito\Integration\PaymentCC.xml"
                 Dim temp As String = "C:\TS\Pagos_Credito\temp\PaymentCC" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
@@ -347,7 +450,7 @@ Public Class Form1
 
         For Each objFile In colFiles
 
-            If existeTraslado() = 0 Then
+            If existePEfectivo() = 0 Then
                 Dim entra As String = "C:\TS\Pagos_Efectivo\" + objFile.Name.ToString
                 Dim integ As String = "C:\TS\Pagos_Efectivo\Integration\PaymentEF.xml"
                 Dim temp As String = "C:\TS\Pagos_Efectivo\temp\PaymentEF" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
@@ -366,7 +469,7 @@ Public Class Form1
 
         For Each objFile In colFiles
 
-            If existeTraslado() = 0 Then
+            If existePTransfer() = 0 Then
                 Dim entra As String = "C:\TS\Pagos_Transfer\" + objFile.Name.ToString
                 Dim integ As String = "C:\TS\Pagos_Transfer\Integration\PaymentTSFR.xml"
                 Dim temp As String = "C:\TS\Pagos_Transfer\temp\PaymentTSFR" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
@@ -377,6 +480,37 @@ Public Class Form1
             End If
         Next
     End Sub
+    Public Sub PagosToma()
+        Try
+
+
+            Dim objFSO As Object = CreateObject("Scripting.FileSystemObject")
+            Dim objSubFolder As Object = "C:\TS\Pagos\"
+            Dim objFolder As Object = objFSO.GetFolder(objSubFolder)
+            Dim colFiles As Object = objFolder.Files
+            For Each objFile In colFiles
+
+                If existePagos() = 0 Then
+                    Dim entra As String = "C:\TS\Pagos\" + objFile.Name.ToString
+                    Dim integ As String = "C:\TS\Pagos\Integration\Payment.xml"
+                    File.Move(entra, integ)
+                    PagoChequeIntegration()
+                    'File.Delete("C:\TS\FacturaUpdate\Integration\Invoice.xml")
+                    'File.Move(integ, temp)
+                ElseIf existePagos() = 1 Then
+                    Dim entra As String = "C:\TS\Pagos\" + objFile.Name.ToString
+                    Dim integ As String = "C:\TS\Pagos\Integration\Payment.xml"
+                    PagoChequeIntegration()
+                    'File.Delete("C:\TS\FacturaUpdate\Integration\Invoice.xml")
+                    'File.Move(integ, temp)
+                End If
+
+            Next
+        Catch ex As Exception
+
+        End Try
+    End Sub
+
 
 
     Private Function existeItem()
@@ -390,6 +524,15 @@ Public Class Form1
     End Function
     Private Function existeFactura()
         If My.Computer.FileSystem.FileExists("C:\TS\Factura\Integration\Invoice.xml") Then
+            'ListBox1.Items.Add("Si Existe")
+            Return 1
+        Else
+            'ListBox1.Items.Add("No Existe")
+            Return 0
+        End If
+    End Function
+    Private Function existecFactura()
+        If My.Computer.FileSystem.FileExists("C:\TS\FacturaUpdate\Integration\Invoice.xml") Then
             'ListBox1.Items.Add("Si Existe")
             Return 1
         Else
@@ -478,4 +621,110 @@ Public Class Form1
             Return 0
         End If
     End Function
+    Private Function existePagos()
+        If My.Computer.FileSystem.FileExists("C:\TS\Pagos\Integration\Payment.xml") Then
+            'ListBox1.Items.Add("Si Existe")
+            Return 1
+        Else
+            'ListBox1.Items.Add("No Existe")
+            Return 0
+        End If
+    End Function
+
+
+    Private Sub CancelaFactura()
+
+        Dim oReturn As Integer = -1
+        Dim oError As Integer = 0
+        Dim errMsg As String = ""
+        Try
+            Dim entra As String = "C:\TS\FacturaUpdate\Integration\Invoice.xml"
+            Dim sale As String = "C:\TS\FacturaUpdate\temp\Invoice" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
+            Dim Xml As XmlDocument = New XmlDocument()
+            Xml.Load(entra)
+            Dim ArticleList As XmlNodeList = Xml.SelectNodes("invoice/document")
+            For Each xnDoc As XmlNode In ArticleList
+                If MakeConnectionSAP() Then
+                    Dim Invoice As SAPbobsCOM.Documents = oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oInvoices)
+                    Dim oInvoice2 As SAPbobsCOM.Documents
+                    Invoice.GetByKey(xnDoc.SelectSingleNode("docentry").InnerText)
+                    oInvoice2 = Invoice.CreateCancellationDocument()
+                    If oInvoice2.Add() = 0 Then
+                        File.Move(entra, sale)
+                    End If
+                End If
+            Next
+        Catch ex As Exception
+            Dim entra As String = "C:\TS\FacturaUpdate\Integration\Invoice.xml"
+            Dim sale As String = "C:\TS\FacturaUpdate\temp\ErrorInvoice" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
+            File.Move(entra, sale)
+        End Try
+    End Sub
+
+
+    Private Sub PagoChequeIntegration()
+        Dim oReturn As Integer = -1
+        Dim oError As Integer = 0
+        Dim errMsg As String = ""
+        Dim sql As String
+        Try
+            Dim entra As String = "C:\TS\Pagos\Integration\Payment.xml"
+            Dim sale As String = "C:\TS\Pagos\temp\Payment" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
+            Dim Xml As XmlDocument = New XmlDocument()
+            Xml.Load(entra)
+            Dim ArticleList As XmlNodeList = Xml.SelectNodes("body/document")
+            For Each xnDoc As XmlNode In ArticleList
+                If MakeConnectionSAP() Then
+                    Dim oPayment As SAPbobsCOM.Payments = oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oIncomingPayments)
+
+                    oPayment.DocNum = xnDoc.SelectSingleNode("tipodepago").InnerText
+                    oPayment.DocNum = xnDoc.SelectSingleNode("pagoacuenta").InnerText
+                    oPayment.DocNum = xnDoc.SelectSingleNode("docnum").InnerText
+                    oPayment.Series = xnDoc.SelectSingleNode("series").InnerText
+                    oPayment.DocDate = xnDoc.SelectSingleNode("docdate").InnerText
+                    oPayment.CardCode = xnDoc.SelectSingleNode("cardcode").InnerText
+                    oPayment.DocCurrency = xnDoc.SelectSingleNode("doccurrency").InnerText
+                    oPayment.DocType = oPayment.DocType.rCustomer
+                    'oPayment.DocType = xnDoc.SelectSingleNode("remarks").InnerText
+
+                    Dim CatNodesLines As XmlNodeList = xnDoc.SelectNodes("document_lines/line")
+                    For Each xnDetLines As XmlNode In CatNodesLines
+
+                        sql = ("select top 1 DocEntry from oinv where DocNum = " + xnDetLines.SelectSingleNode("docentry").InnerText)
+                        Dim oRecordSet As SAPbobsCOM.Recordset
+                        oRecordSet = oCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+                        oRecordSet.DoQuery(sql)
+                        If oRecordSet.RecordCount > 0 Then
+                            oPayment.Invoices.DocEntry = oRecordSet.Fields.Item(0).Value
+                        End If
+                        oPayment.Invoices.InvoiceType = "13"
+                        oPayment.Invoices.SumApplied = xnDetLines.SelectSingleNode("sumapplied").InnerText
+                        oPayment.Invoices.Add()
+                    Next
+                    Dim CatNodesPay As XmlNodeList = xnDoc.SelectNodes("document_lines/pay")
+                    For Each xnDetPay As XmlNode In CatNodesPay
+                        oPayment.Checks.CheckNumber = xnDetPay.SelectSingleNode("checknumber").InnerText
+                        oPayment.Checks.BankCode = xnDetPay.SelectSingleNode("bankcode").InnerText
+                        oPayment.Checks.AccounttNum = xnDetPay.SelectSingleNode("accounttnum").InnerText
+                        oPayment.Checks.CheckSum = xnDetPay.SelectSingleNode("checksum").InnerText
+                        oPayment.Checks.CheckAccount = xnDetPay.SelectSingleNode("checkaccount").InnerText
+                        oPayment.Checks.Add()
+                    Next
+
+
+                    oPayment.Remarks = xnDoc.SelectSingleNode("remarks").InnerText
+                    oReturn = oPayment.Add()
+                    If oReturn <> 0 Then
+                        oCompany.GetLastError(oError, errMsg)
+                        MsgBox(errMsg)
+                    End If
+                End If
+            Next
+            File.Move(entra, sale)
+        Catch ex As Exception
+            Dim entra As String = "C:\TS\Pagos\Integration\Payment.xml"
+            Dim sale As String = "C:\TS\Pagos\temp\Payment" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xml"
+            File.Move(entra, sale)
+        End Try
+    End Sub
 End Class

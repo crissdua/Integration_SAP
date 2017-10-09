@@ -9,3 +9,4 @@ c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integra
 c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.exe
 c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.xml
 c:\users\cristhiam\documents\visual studio 2015\Projects\Integration_SAP\Integration_SAP\obj\Debug\Integration_SAP.pdb
+C:\Users\Cristhiam\Documents\Visual Studio 2015\Projects\Integration_SAP\Integration_SAP\bin\Debug\SAPBusinessOneSDK.dll
