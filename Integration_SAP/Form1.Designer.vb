@@ -22,7 +22,19 @@ Partial Class Form1
     'No lo modifique con el editor de código.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
+        Me.NotifyIcon1 = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.SuspendLayout()
+        '
+        'NotifyIcon1
+        '
+        Me.NotifyIcon1.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info
+        Me.NotifyIcon1.BalloonTipText = "Integracion SIFA+SAP"
+        Me.NotifyIcon1.BalloonTipTitle = "Activado"
+        Me.NotifyIcon1.Icon = CType(resources.GetObject("NotifyIcon1.Icon"), System.Drawing.Icon)
+        Me.NotifyIcon1.Text = "SIFA-SAP"
+        Me.NotifyIcon1.Visible = True
         '
         'Form1
         '
@@ -35,4 +47,5 @@ Partial Class Form1
 
     End Sub
 
+    Friend WithEvents NotifyIcon1 As NotifyIcon
 End Class
